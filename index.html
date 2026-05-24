@@ -108,8 +108,10 @@
     const cat_emoji = CAT_EMOJI["ARTICULOS DE LIMPIEZA"]
     if (err) return React.createElement("div", { style:{ width:size, height:size, borderRadius:radius, background:"linear-gradient(135deg,#eef1fa,#dbeafe)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:size*0.45, flexShrink:0 } }, "📦")
     return React.createElement("img", {
-      src: STORAGE_URL + "/" + sku + ".png",
+      src: STORAGE_URL + "/" + sku + ".webp",
       alt: sku,
+      loading: "lazy",
+      decoding: "async",
       onError: ()=>setErr(true),
       style:{ width:size, height:size, borderRadius:radius, objectFit:"contain", background:"white", flexShrink:0, border:"1px solid #f1f5f9" }
     })
@@ -139,7 +141,7 @@
         imgErr
           ? React.createElement("div", { className:"product-img-err" }, CAT_EMOJI[product.category]||"📦")
           : React.createElement("img", {
-              src: STORAGE_URL + "/" + product.sku + ".png",
+              src: STORAGE_URL + "/" + product.sku + ".webp",
               alt: product.name,
               className: "product-img",
               onError: ()=>setImgErr(true)
