@@ -362,11 +362,20 @@
 
     // CARRITO
     if(view==="cart")return React.createElement("div",{style:{minHeight:"100vh",background:"#f4f6fb",display:"flex",flexDirection:"column"}},
-      React.createElement("div",{className:"bg-brand",style:{padding:"12px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}},
-        React.createElement("button",{onClick:()=>setView("catalog"),style:{background:"rgba(255,255,255,.18)",border:"none",color:"white",borderRadius:9,width:36,height:36,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}},"←"),
-        React.createElement("div",null,
-          React.createElement("p",{style:{fontWeight:"800",fontSize:"16px",color:"white"}},"Tu carrito"),
-          React.createElement("p",{style:{fontSize:"12px",color:"rgba(255,255,255,.7)"}},cartCount+" productos · "+fmt(cartTotal))
+      React.createElement("div",{className:"bg-brand",style:{padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexShrink:0}},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+          React.createElement("button",{onClick:()=>setView("catalog"),style:{background:"rgba(255,255,255,.18)",border:"none",color:"white",borderRadius:9,width:36,height:36,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}},"←"),
+          React.createElement("div",null,
+            React.createElement("p",{style:{fontWeight:"800",fontSize:"16px",color:"white"}},"Tu carrito"),
+            React.createElement("p",{style:{fontSize:"12px",color:"rgba(255,255,255,.7)"}},cartCount+" productos · "+fmt(cartTotal))
+          )
+        ),
+        cartItems.length>0&&React.createElement("button",{
+          onClick:()=>{if(window.confirm("¿Vaciar el carrito?"))setCart({})},
+          style:{background:"rgba(255,255,255,.18)",border:"none",color:"white",borderRadius:9,padding:"7px 12px",fontSize:"12px",fontWeight:"700",cursor:"pointer",display:"flex",alignItems:"center",gap:4}
+        },
+          React.createElement("span",null,"🗑️"),
+          React.createElement("span",null,"Vaciar")
         )
       ),
       React.createElement("div",{style:{flex:1,overflowY:"auto",padding:"12px",paddingBottom:240,display:"flex",flexDirection:"column",gap:8}},
@@ -390,10 +399,14 @@
                     React.createElement("p",{style:{fontSize:"11px",color:"#94a3b8"}},fmt(product.price)+" c/u"),
                     React.createElement("p",{style:{fontWeight:"800",fontSize:"17px",color:"#1a3fcc"}},fmt(product.price*qty))
                   ),
-                  React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-                    React.createElement("button",{onClick:()=>updateQty(product.id,qty-1),className:"qty-btn qty-minus",style:{width:30,height:30}},"−"),
+                  React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+                    React.createElement("button",{
+                      onClick:()=>updateQty(product.cartKey||product.id,0),
+                      style:{width:30,height:30,borderRadius:9,background:"#fee2e2",color:"#e8111a",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:"700",flexShrink:0}
+                    },"🗑️"),
+                    React.createElement("button",{onClick:()=>updateQty(product.cartKey||product.id,qty-1),className:"qty-btn qty-minus",style:{width:30,height:30}},"−"),
                     React.createElement("span",{style:{fontWeight:"700",width:22,textAlign:"center",fontSize:"15px"}},qty),
-                    React.createElement("button",{onClick:()=>updateQty(product.id,qty+1),className:"qty-btn qty-plus",style:{width:30,height:30}},"+")
+                    React.createElement("button",{onClick:()=>updateQty(product.cartKey||product.id,qty+1),className:"qty-btn qty-plus",style:{width:30,height:30}},"+")
                   )
                 )
               )
@@ -865,36 +878,195 @@
     )
   }
 
-  // ── LOGIN ─────────────────────────────────────────────────
+  // ── LOGIN / REGISTRO / RECUPERAR ─────────────────────────
   function LoginPage() {
-    const [email,setEmail]=useState("")
-    const [pass,setPass]=useState("")
-    const [loading,setLoading]=useState(false)
-    const [error,setError]=useState("")
-    const submit=async e=>{
-      e.preventDefault();setLoading(true);setError("")
-      const {error}=await sb.auth.signInWithPassword({email,password:pass})
+    const [tab,setTab]     = useState("login") // login | register | recover
+    const [email,setEmail] = useState("")
+    const [pass,setPass]   = useState("")
+    const [pass2,setPass2] = useState("")
+    const [loading,setLoading] = useState(false)
+    const [error,setError]   = useState("")
+    const [success,setSuccess] = useState("")
+
+    // Register form fields
+    const [form,setForm] = useState({
+      name:"", dni_cuit:"", nombre_fantasia:"",
+      domicilio:"", horarios_entrega:"", telefono:""
+    })
+    const setF = (k,v) => setForm(prev=>({...prev,[k]:v}))
+
+    const inputStyle = {width:"100%",border:"1.5px solid #e2e8f0",borderRadius:11,padding:"11px 13px",fontSize:"14px",outline:"none",boxSizing:"border-box"}
+    const labelStyle = {display:"block",fontSize:"11px",fontWeight:"700",color:"#5a6a8a",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}
+
+    const switchTab = t => { setTab(t); setError(""); setSuccess("") }
+
+    // LOGIN
+    const submitLogin = async e => {
+      e.preventDefault(); setLoading(true); setError("")
+      const {error} = await sb.auth.signInWithPassword({email,password:pass})
       if(error){setError("Email o contraseña incorrectos.");setLoading(false)}
     }
-    return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",background:"linear-gradient(160deg,#1535b0 0%,#1a3fcc 50%,#1e52e8 100%)"}},
-      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px 24px"}},
-        React.createElement("div",{style:{marginBottom:24}},React.createElement(LogoBig)),
-        React.createElement("p",{style:{color:"rgba(255,255,255,.65)",fontSize:"14px",textAlign:"center",marginBottom:24}},"Portal de pedidos mayoristas"),
-        React.createElement("div",{className:"card fade-up",style:{width:"100%",maxWidth:360,padding:"28px 24px"}},
-          React.createElement("h2",{style:{fontWeight:"700",fontSize:"16px",color:"#1e293b",marginBottom:18,textAlign:"center"}},"Ingresá a tu cuenta"),
-          React.createElement("form",{onSubmit:submit,style:{display:"flex",flexDirection:"column",gap:12}},
-            React.createElement("div",null,
-              React.createElement("label",{style:{display:"block",fontSize:"12px",fontWeight:"700",color:"#5a6a8a",marginBottom:5,textTransform:"uppercase",letterSpacing:".04em"}},"Email"),
-              React.createElement("input",{type:"email",value:email,onChange:e=>setEmail(e.target.value),required:true,placeholder:"tu@email.com",style:{width:"100%",border:"1.5px solid #e2e8f0",borderRadius:11,padding:"12px 13px",fontSize:"15px",outline:"none"}})
-            ),
-            React.createElement("div",null,
-              React.createElement("label",{style:{display:"block",fontSize:"12px",fontWeight:"700",color:"#5a6a8a",marginBottom:5,textTransform:"uppercase",letterSpacing:".04em"}},"Contraseña"),
-              React.createElement("input",{type:"password",value:pass,onChange:e=>setPass(e.target.value),required:true,placeholder:"••••••••",style:{width:"100%",border:"1.5px solid #e2e8f0",borderRadius:11,padding:"12px 13px",fontSize:"15px",outline:"none"}})
-            ),
-            error&&React.createElement("p",{style:{color:"#e8111a",fontSize:"13px",textAlign:"center"}},error),
-            React.createElement("button",{type:"submit",disabled:loading,className:"btn-primary",style:{padding:"13px",fontSize:"15px",marginTop:4}},loading?"Ingresando...":"Ingresar")
+
+    // REGISTRO
+    const submitRegister = async e => {
+      e.preventDefault(); setError(""); setLoading(true)
+      if(pass !== pass2){setError("Las contraseñas no coinciden.");setLoading(false);return}
+      if(pass.length < 6){setError("La contraseña debe tener al menos 6 caracteres.");setLoading(false);return}
+      if(!form.name||!form.domicilio||!form.telefono){setError("Completá los campos obligatorios (*).");setLoading(false);return}
+
+      const {data,error} = await sb.auth.signUp({
+        email, password:pass,
+        options:{data:{name:form.name, role:"client"}}
+      })
+      if(error){setError("Error: "+error.message);setLoading(false);return}
+
+      // Save profile data
+      if(data?.user){
+        await sb.from("profiles").upsert({
+          id: data.user.id,
+          name: form.name,
+          role: "client",
+          dni_cuit: form.dni_cuit||null,
+          nombre_fantasia: form.nombre_fantasia||null,
+          domicilio: form.domicilio,
+          horarios_entrega: form.horarios_entrega||null,
+          telefono: form.telefono,
+          perfil_completo: true
+        })
+      }
+      setLoading(false)
+      setSuccess("✅ ¡Cuenta creada! Revisá tu email para confirmar tu cuenta y después podés ingresar.")
+    }
+
+    // RECUPERAR CONTRASEÑA
+    const submitRecover = async e => {
+      e.preventDefault(); setLoading(true); setError(""); setSuccess("")
+      const {error} = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+      })
+      if(error){setError("Error: "+error.message);setLoading(false);return}
+      setLoading(false)
+      setSuccess("✅ Te enviamos un email para restablecer tu contraseña. Revisá tu bandeja.")
+    }
+
+    return React.createElement("div",{style:{minHeight:"100vh",display:"flex",flexDirection:"column",background:"linear-gradient(160deg,#1535b0 0%,#1a3fcc 50%,#1e52e8 100%)",overflowY:"auto"}},
+      React.createElement("div",{style:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px"}},
+
+        // Logo
+        React.createElement("div",{style:{background:"white",borderRadius:20,padding:"14px 20px",marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,.2)"}},
+          React.createElement("img",{src:LOGO_SRC,alt:"Barreiro Mayorista",style:{height:40,width:"auto",objectFit:"contain",display:"block"}})
+        ),
+        React.createElement("p",{style:{color:"rgba(255,255,255,.7)",fontSize:"13px",textAlign:"center",marginBottom:20}},"Portal de pedidos mayoristas"),
+
+        // Card
+        React.createElement("div",{className:"card fade-up",style:{width:"100%",maxWidth:400,overflow:"hidden"}},
+
+          // Tab switcher
+          React.createElement("div",{style:{display:"flex",borderBottom:"1.5px solid #e8ecf8"}},
+            [["login","Ingresar"],["register","Crear cuenta"]].map(([id,label])=>
+              React.createElement("button",{key:id,onClick:()=>switchTab(id),
+                style:{flex:1,padding:"14px 8px",fontSize:"13px",fontWeight:"700",border:"none",background:"transparent",cursor:"pointer",
+                  borderBottom:"2.5px solid "+(tab===id?"#1a3fcc":"transparent"),
+                  color:tab===id?"#1a3fcc":"#94a3b8"}
+              },label)
+            )
           ),
-          React.createElement("p",{style:{textAlign:"center",fontSize:"12px",color:"#94a3b8",marginTop:18}},"Contactá a Barreiro Mayorista para obtener acceso.")
+
+          React.createElement("div",{style:{padding:"20px"}},
+
+            // ── LOGIN ──
+            tab==="login" && React.createElement("form",{onSubmit:submitLogin,style:{display:"flex",flexDirection:"column",gap:12}},
+              React.createElement("div",null,
+                React.createElement("label",{style:labelStyle},"Email"),
+                React.createElement("input",{type:"email",value:email,onChange:e=>setEmail(e.target.value),required:true,placeholder:"tu@email.com",style:inputStyle})
+              ),
+              React.createElement("div",null,
+                React.createElement("label",{style:labelStyle},"Contraseña"),
+                React.createElement("input",{type:"password",value:pass,onChange:e=>setPass(e.target.value),required:true,placeholder:"••••••••",style:inputStyle})
+              ),
+              error&&React.createElement("p",{style:{color:"#e8111a",fontSize:"13px",textAlign:"center"}},error),
+              React.createElement("button",{type:"submit",disabled:loading,className:"btn-primary",style:{padding:"13px",fontSize:"15px",marginTop:4}},loading?"Ingresando...":"Ingresar"),
+              React.createElement("button",{type:"button",onClick:()=>switchTab("recover"),
+                style:{background:"none",border:"none",color:"#94a3b8",fontSize:"12px",cursor:"pointer",marginTop:4,textDecoration:"underline"}
+              },"¿Olvidaste tu contraseña?")
+            ),
+
+            // ── REGISTRO ──
+            tab==="register" && (success
+              ? React.createElement("div",{style:{textAlign:"center",padding:"20px 0"}},
+                  React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📧"),
+                  React.createElement("p",{style:{color:"#166534",fontWeight:"700",fontSize:"14px",lineHeight:1.5}},success),
+                  React.createElement("button",{onClick:()=>switchTab("login"),className:"btn-primary",style:{padding:"11px 20px",fontSize:"13px",marginTop:16}},"Ir a ingresar")
+                )
+              : React.createElement("form",{onSubmit:submitRegister,style:{display:"flex",flexDirection:"column",gap:11}},
+                  React.createElement("p",{style:{fontSize:"12px",color:"#94a3b8",marginBottom:4}},"Los campos con * son obligatorios"),
+
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Nombre completo *"),
+                    React.createElement("input",{type:"text",value:form.name,onChange:e=>setF("name",e.target.value),placeholder:"Tu nombre y apellido",required:true,style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"DNI o CUIT (opcional)"),
+                    React.createElement("input",{type:"text",value:form.dni_cuit,onChange:e=>setF("dni_cuit",e.target.value),placeholder:"Ej: 20-12345678-9",style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Nombre de fantasía del comercio"),
+                    React.createElement("input",{type:"text",value:form.nombre_fantasia,onChange:e=>setF("nombre_fantasia",e.target.value),placeholder:"Ej: Almacén El Ángel",style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Domicilio de entrega *"),
+                    React.createElement("input",{type:"text",value:form.domicilio,onChange:e=>setF("domicilio",e.target.value),placeholder:"Calle, número, localidad",required:true,style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Horarios de entrega"),
+                    React.createElement("input",{type:"text",value:form.horarios_entrega,onChange:e=>setF("horarios_entrega",e.target.value),placeholder:"Ej: Lun a Vie 9 a 17hs",style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Teléfono de contacto *"),
+                    React.createElement("input",{type:"tel",value:form.telefono,onChange:e=>setF("telefono",e.target.value),placeholder:"Ej: 11 1234-5678",required:true,style:inputStyle})
+                  ),
+
+                  React.createElement("div",{style:{height:1,background:"#e8ecf8",margin:"4px 0"}}),
+
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Email *"),
+                    React.createElement("input",{type:"email",value:email,onChange:e=>setEmail(e.target.value),required:true,placeholder:"tu@email.com",style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Contraseña * (mín. 6 caracteres)"),
+                    React.createElement("input",{type:"password",value:pass,onChange:e=>setPass(e.target.value),required:true,placeholder:"••••••••",style:inputStyle})
+                  ),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Repetir contraseña *"),
+                    React.createElement("input",{type:"password",value:pass2,onChange:e=>setPass2(e.target.value),required:true,placeholder:"••••••••",style:inputStyle})
+                  ),
+
+                  error&&React.createElement("p",{style:{color:"#e8111a",fontSize:"13px",textAlign:"center"}},error),
+                  React.createElement("button",{type:"submit",disabled:loading,className:"btn-primary",style:{padding:"13px",fontSize:"15px",marginTop:4}},loading?"Creando cuenta...":"Crear cuenta")
+                )
+            ),
+
+            // ── RECUPERAR ──
+            tab==="recover" && (success
+              ? React.createElement("div",{style:{textAlign:"center",padding:"20px 0"}},
+                  React.createElement("div",{style:{fontSize:48,marginBottom:12}},"📧"),
+                  React.createElement("p",{style:{color:"#166534",fontWeight:"700",fontSize:"14px",lineHeight:1.5}},success),
+                  React.createElement("button",{onClick:()=>switchTab("login"),className:"btn-primary",style:{padding:"11px 20px",fontSize:"13px",marginTop:16}},"Volver a ingresar")
+                )
+              : React.createElement("form",{onSubmit:submitRecover,style:{display:"flex",flexDirection:"column",gap:12}},
+                  React.createElement("p",{style:{fontSize:"13px",color:"#64748b",marginBottom:4}},"Ingresá tu email y te enviamos un link para restablecer tu contraseña."),
+                  React.createElement("div",null,
+                    React.createElement("label",{style:labelStyle},"Email"),
+                    React.createElement("input",{type:"email",value:email,onChange:e=>setEmail(e.target.value),required:true,placeholder:"tu@email.com",style:inputStyle})
+                  ),
+                  error&&React.createElement("p",{style:{color:"#e8111a",fontSize:"13px",textAlign:"center"}},error),
+                  React.createElement("button",{type:"submit",disabled:loading,className:"btn-primary",style:{padding:"13px",fontSize:"15px"}},loading?"Enviando...":"Enviar email"),
+                  React.createElement("button",{type:"button",onClick:()=>switchTab("login"),
+                    style:{background:"none",border:"none",color:"#94a3b8",fontSize:"12px",cursor:"pointer",marginTop:4,textDecoration:"underline"}
+                  },"← Volver a ingresar")
+                )
+            )
+          )
         )
       ),
       React.createElement("div",{style:{padding:"16px",textAlign:"center"}},
