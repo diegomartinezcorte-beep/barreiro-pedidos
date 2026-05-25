@@ -252,9 +252,14 @@
   }
 
   // ── WHATSAPP SENDER ───────────────────────────────────────
-  function sendToWhatsApp(cartItems, cartTotal, clientName, vendorName, notes) {
+  function sendToWhatsApp(cartItems, cartTotal, clientName, vendorName, notes, profile) {
     const lines = ["🛒 *NUEVO PEDIDO - BARREIRO MAYORISTA*", ""]
     if(clientName) lines.push("👤 *Cliente:* "+clientName)
+    if(profile?.nombre_fantasia) lines.push("🏪 *Comercio:* "+profile.nombre_fantasia)
+    if(profile?.dni_cuit) lines.push("📋 *DNI/CUIT:* "+profile.dni_cuit)
+    if(profile?.domicilio) lines.push("📍 *Entrega:* "+profile.domicilio)
+    if(profile?.horarios_entrega) lines.push("🕐 *Horarios:* "+profile.horarios_entrega)
+    if(profile?.telefono) lines.push("📞 *Tel:* "+profile.telefono)
     if(vendorName) lines.push("🧑‍💼 *Vendedor:* "+vendorName)
     lines.push("")
     lines.push("*PRODUCTOS:*")
@@ -273,7 +278,7 @@
   }
 
   // ── CATÁLOGO ──────────────────────────────────────────────
-  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess}) {
+  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile}) {
     const [products,setProducts]   = useState([])
     const [cart,setCart]           = useState({})
     const [search,setSearch]       = useState("")
@@ -333,7 +338,7 @@
         cartItems.map(i=>({order_id:order.id,product_id:i.product.id,quantity:i.qty,unit_price:i.product.price,subtotal:i.product.price*i.qty}))
       )
       // Send WhatsApp
-      sendToWhatsApp(cartItems,cartTotal,clientName,vendorName,notes)
+      sendToWhatsApp(cartItems,cartTotal,clientName,vendorName,notes,profile)
       // Clear cart
       setCart({})
       sessionStorage.removeItem("cart_"+clientId)
@@ -578,14 +583,108 @@
     )
   }
 
+  // ── FORMULARIO DE PERFIL ─────────────────────────────────
+  function ProfileSetup({profile, onComplete}) {
+    const [form, setForm] = useState({
+      name: profile.name || "",
+      dni_cuit: profile.dni_cuit || "",
+      domicilio: profile.domicilio || "",
+      nombre_fantasia: profile.nombre_fantasia || "",
+      horarios_entrega: profile.horarios_entrega || "",
+      telefono: profile.telefono || "",
+    })
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState("")
+
+    const set = (k,v) => setForm(prev=>({...prev,[k]:v}))
+    const inputStyle = {width:"100%",border:"1.5px solid #e2e8f0",borderRadius:11,padding:"11px 13px",fontSize:"14px",outline:"none",boxSizing:"border-box"}
+    const labelStyle = {display:"block",fontSize:"12px",fontWeight:"700",color:"#5a6a8a",marginBottom:5,textTransform:"uppercase",letterSpacing:".04em"}
+
+    const submit = async e => {
+      e.preventDefault()
+      if(!form.name||!form.domicilio||!form.telefono) {setError("Completá los campos obligatorios (*)");return}
+      setSaving(true)
+      const {error} = await sb.from("profiles").update({
+        name: form.name,
+        dni_cuit: form.dni_cuit||null,
+        domicilio: form.domicilio,
+        nombre_fantasia: form.nombre_fantasia||null,
+        horarios_entrega: form.horarios_entrega||null,
+        telefono: form.telefono,
+        perfil_completo: true
+      }).eq("id", profile.id)
+      if(error){setError("Error al guardar. Intentá de nuevo.");setSaving(false);return}
+      onComplete({...profile,...form,perfil_completo:true})
+    }
+
+    return React.createElement("div",{style:{minHeight:"100vh",background:"linear-gradient(160deg,#1535b0,#1a3fcc)"}},
+      React.createElement("div",{style:{padding:"32px 20px 20px",display:"flex",flexDirection:"column",alignItems:"center"}},
+        React.createElement("div",{style:{background:"white",borderRadius:20,padding:"14px 20px",marginBottom:20,boxShadow:"0 8px 32px rgba(0,0,0,.2)"}},
+          React.createElement("img",{src:LOGO_SRC,alt:"Barreiro Mayorista",style:{height:36,width:"auto",objectFit:"contain",display:"block"}})
+        ),
+        React.createElement("h2",{style:{color:"white",fontWeight:"800",fontSize:"20px",marginBottom:6,textAlign:"center"}},"¡Bienvenido!"),
+        React.createElement("p",{style:{color:"rgba(255,255,255,.75)",fontSize:"13px",textAlign:"center",marginBottom:20,maxWidth:300}},"Completá tus datos para empezar a hacer pedidos."),
+
+        React.createElement("div",{className:"card",style:{width:"100%",maxWidth:420,padding:"24px 20px"}},
+          React.createElement("form",{onSubmit:submit,style:{display:"flex",flexDirection:"column",gap:14}},
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"Nombre completo *"),
+              React.createElement("input",{type:"text",value:form.name,onChange:e=>set("name",e.target.value),placeholder:"Tu nombre y apellido",required:true,style:inputStyle})
+            ),
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"DNI o CUIT (opcional)"),
+              React.createElement("input",{type:"text",value:form.dni_cuit,onChange:e=>set("dni_cuit",e.target.value),placeholder:"Ej: 20-12345678-9",style:inputStyle})
+            ),
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"Nombre de fantasía del comercio"),
+              React.createElement("input",{type:"text",value:form.nombre_fantasia,onChange:e=>set("nombre_fantasia",e.target.value),placeholder:"Ej: Almacén El Ángel",style:inputStyle})
+            ),
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"Domicilio de entrega *"),
+              React.createElement("input",{type:"text",value:form.domicilio,onChange:e=>set("domicilio",e.target.value),placeholder:"Calle, número, localidad",required:true,style:inputStyle})
+            ),
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"Horarios de entrega"),
+              React.createElement("input",{type:"text",value:form.horarios_entrega,onChange:e=>set("horarios_entrega",e.target.value),placeholder:"Ej: Lun a Vie 9 a 17hs",style:inputStyle})
+            ),
+
+            React.createElement("div",null,
+              React.createElement("label",{style:labelStyle},"Teléfono de contacto *"),
+              React.createElement("input",{type:"tel",value:form.telefono,onChange:e=>set("telefono",e.target.value),placeholder:"Ej: 11 1234-5678",required:true,style:inputStyle})
+            ),
+
+            error && React.createElement("p",{style:{color:"#e8111a",fontSize:"13px",textAlign:"center"}},error),
+
+            React.createElement("button",{type:"submit",disabled:saving,className:"btn-primary",style:{padding:"14px",fontSize:"15px",marginTop:4}},
+              saving ? "Guardando..." : "Guardar y continuar →"
+            )
+          )
+        ),
+        React.createElement("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"11px",marginTop:16,textAlign:"center"}},"Los campos marcados con * son obligatorios")
+      )
+    )
+  }
+
   // ── CLIENTE ───────────────────────────────────────────────
   function ClientApp({profile}) {
     const [tab,setTab]=useState("catalog")
+    const [currentProfile,setCurrentProfile]=useState(profile)
     const signOut=()=>sb.auth.signOut().then(()=>window.location.reload())
+
+    // Show profile setup if not complete
+    if(!currentProfile.perfil_completo) {
+      return React.createElement(ProfileSetup,{profile:currentProfile,onComplete:setCurrentProfile})
+    }
+
     return React.createElement("div",{style:{minHeight:"100vh",background:"#f4f6fb"}},
-      React.createElement(AppHeader,{subtitle:"Hola, "+profile.name.split(" ")[0]+" 👋 · Precios mayoristas",onSignOut:signOut}),
-      tab==="catalog"&&React.createElement(ProductCatalog,{clientId:profile.id,clientName:profile.name}),
-      tab==="orders"&&React.createElement(OrderHistory,{userId:profile.id}),
+      React.createElement(AppHeader,{subtitle:"Hola, "+currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0]+" 👋 · Precios mayoristas",onSignOut:signOut}),
+      tab==="catalog"&&React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile}),
+      tab==="orders"&&React.createElement(OrderHistory,{userId:currentProfile.id}),
       React.createElement("div",{className:"bottom-nav"},
         [{id:"catalog",icon:"📦",label:"Catálogo"},{id:"orders",icon:"📋",label:"Mis pedidos"}].map(({id,icon,label})=>
           React.createElement("button",{key:id,onClick:()=>setTab(id),className:"nav-btn "+(tab===id?"active":"inactive")},
