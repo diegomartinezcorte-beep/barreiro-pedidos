@@ -123,42 +123,95 @@
   // ── MODAL PRODUCTO ────────────────────────────────────────
   function ProductModal({product,cartQty,onClose,onAdd,onUpdate}) {
     const [qty,setQty] = useState(cartQty||1)
+    const [mode,setMode] = useState("unit") // "unit" or "bulk"
     const [imgErr,setImgErr] = useState(false)
+    const uxb = product.units_per_pack || 1
+    const hasBulk = uxb > 1
+
     useEffect(()=>{
       const h=e=>{if(e.key==="Escape")onClose()}
       window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h)
     },[])
+
+    // When switching mode reset qty
+    const switchMode = m => { setMode(m); setQty(1) }
+
+    // Final qty in units
+    const finalQty = mode==="bulk" ? qty*uxb : qty
+    const unitPrice = product.price
+    const bulkPrice = unitPrice * uxb
+    const subtotal = unitPrice * finalQty
+
     const handleAdd=()=>{
-      if(cartQty>0)onUpdate(product.id,qty)
-      else onAdd(product,qty)
+      if(cartQty>0)onUpdate(product.id,finalQty)
+      else onAdd(product,finalQty)
       onClose()
     }
+
     return React.createElement("div",{className:"modal-overlay",onClick:onClose},
       React.createElement("div",{className:"modal-box fade-up",onClick:e=>e.stopPropagation()},
         imgErr
-          ? React.createElement("div",{style:{width:"100%",height:220,display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:"#f8faff"}},CAT_EMOJI[product.category]||"📦")
-          : React.createElement("img",{src:STORAGE_URL+"/"+product.sku+".webp",alt:product.name,loading:"lazy",onError:()=>setImgErr(true),style:{width:"100%",height:220,objectFit:"contain",background:"#f8faff",padding:16}}),
-        React.createElement("div",{style:{padding:"16px 20px 20px"}},
-          React.createElement("p",{style:{fontSize:"11px",fontWeight:"700",color:"#94a3b8",textTransform:"uppercase",letterSpacing:".08em",marginBottom:4}},
+          ? React.createElement("div",{style:{width:"100%",height:200,display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:"#f8faff"}},CAT_EMOJI[product.category]||"📦")
+          : React.createElement("img",{src:STORAGE_URL+"/"+product.sku+".webp",alt:product.name,loading:"lazy",onError:()=>setImgErr(true),style:{width:"100%",height:200,objectFit:"contain",background:"#f8faff",padding:16}}),
+        React.createElement("div",{style:{padding:"14px 18px 18px"}},
+          React.createElement("p",{style:{fontSize:"11px",fontWeight:"700",color:"#94a3b8",textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}},
             (CAT_EMOJI[product.category]||"📦")+" "+(CATS[product.category]||product.category)
           ),
-          React.createElement("p",{style:{fontWeight:"700",fontSize:"15px",color:"#1e293b",lineHeight:1.35,marginBottom:12}},product.name),
-          React.createElement("p",{style:{fontWeight:"800",fontSize:"28px",color:"#1a3fcc",marginBottom:20}},fmt(product.price)),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}},
-            React.createElement("p",{style:{fontWeight:"600",color:"#475569",fontSize:"14px"}},"Cantidad"),
+          React.createElement("p",{style:{fontWeight:"700",fontSize:"14px",color:"#1e293b",lineHeight:1.35,marginBottom:10}},product.name),
+
+          // Mode selector (only if has bulk)
+          hasBulk && React.createElement("div",{style:{display:"flex",gap:6,marginBottom:12,background:"#f4f6fb",borderRadius:12,padding:4}},
+            React.createElement("button",{
+              onClick:()=>switchMode("unit"),
+              style:{flex:1,padding:"8px",borderRadius:9,fontSize:"12px",fontWeight:"700",border:"none",cursor:"pointer",
+                background:mode==="unit"?"white":"transparent",
+                color:mode==="unit"?"#1a3fcc":"#94a3b8",
+                boxShadow:mode==="unit"?"0 1px 4px rgba(0,0,0,.1)":"none"}
+            },"Por unidad"),
+            React.createElement("button",{
+              onClick:()=>switchMode("bulk"),
+              style:{flex:1,padding:"8px",borderRadius:9,fontSize:"12px",fontWeight:"700",border:"none",cursor:"pointer",
+                background:mode==="bulk"?"white":"transparent",
+                color:mode==="bulk"?"#1a3fcc":"#94a3b8",
+                boxShadow:mode==="bulk"?"0 1px 4px rgba(0,0,0,.1)":"none"}
+            },"Por bulto ("+uxb+" u)")
+          ),
+
+          // Price display
+          React.createElement("div",{style:{marginBottom:12}},
+            mode==="unit"
+              ? React.createElement("p",{style:{fontWeight:"800",fontSize:"26px",color:"#1a3fcc"}},fmt(unitPrice)+" / u")
+              : React.createElement("div",null,
+                  React.createElement("p",{style:{fontWeight:"800",fontSize:"26px",color:"#1a3fcc"}},fmt(bulkPrice)+" / bulto"),
+                  React.createElement("p",{style:{fontSize:"12px",color:"#94a3b8",marginTop:2}},fmt(unitPrice)+" por unidad · "+uxb+" unidades")
+                )
+          ),
+
+          // Qty stepper
+          React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}},
+            React.createElement("p",{style:{fontWeight:"600",color:"#475569",fontSize:"13px"}},
+              mode==="bulk" ? "Bultos" : "Unidades"
+            ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
               React.createElement("button",{onClick:()=>setQty(q=>Math.max(1,q-1)),className:"qty-btn qty-minus"},"−"),
               React.createElement("span",{style:{fontWeight:"800",fontSize:"20px",width:32,textAlign:"center"}},qty),
               React.createElement("button",{onClick:()=>setQty(q=>q+1),className:"qty-btn qty-plus"},"+")
             )
           ),
-          React.createElement("div",{style:{background:"#f8faff",borderRadius:12,padding:"10px 14px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}},
-            React.createElement("p",{style:{fontSize:"13px",color:"#64748b"}},"Subtotal"),
-            React.createElement("p",{style:{fontWeight:"800",fontSize:"17px",color:"#1a3fcc"}},fmt(product.price*qty))
+
+          // Subtotal
+          React.createElement("div",{style:{background:"#f8faff",borderRadius:11,padding:"10px 13px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+            React.createElement("div",null,
+              React.createElement("p",{style:{fontSize:"12px",color:"#64748b"}},"Subtotal"),
+              mode==="bulk"&&React.createElement("p",{style:{fontSize:"11px",color:"#94a3b8"}},"("+finalQty+" unidades en total)")
+            ),
+            React.createElement("p",{style:{fontWeight:"800",fontSize:"18px",color:"#1a3fcc"}},fmt(subtotal))
           ),
+
+          // Buttons
           React.createElement("div",{style:{display:"flex",gap:10}},
-            React.createElement("button",{onClick:onClose,style:{flex:1,padding:"12px",borderRadius:12,border:"1.5px solid #e2e8f0",background:"white",fontWeight:"700",fontSize:"14px",cursor:"pointer",color:"#64748b"}},"Cancelar"),
-            React.createElement("button",{onClick:handleAdd,className:"btn-primary",style:{flex:2,padding:"12px",fontSize:"14px"}},
+            React.createElement("button",{onClick:onClose,style:{flex:1,padding:"11px",borderRadius:12,border:"1.5px solid #e2e8f0",background:"white",fontWeight:"700",fontSize:"13px",cursor:"pointer",color:"#64748b"}},"Cancelar"),
+            React.createElement("button",{onClick:handleAdd,className:"btn-primary",style:{flex:2,padding:"11px",fontSize:"13px"}},
               cartQty>0?"✓ Actualizar carrito":"🛒 Agregar al carrito"
             )
           )
