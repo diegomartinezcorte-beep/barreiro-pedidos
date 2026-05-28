@@ -344,7 +344,7 @@
   }
 
   // ── CATÁLOGO ──────────────────────────────────────────────
-  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile}) {
+  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile,onSignOut}) {
     const [products,setProducts]   = useState([])
     const [cart,setCart]           = useState({})
     const [search,setSearch]       = useState("")
@@ -505,12 +505,15 @@
       React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:"white",boxShadow:"0 1px 0 #e8ecf8"}},
         React.createElement("div",{className:"bg-brand",style:{padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
           React.createElement(LogoSmall,{white:true}),
-          cartCount>0&&React.createElement("button",{
-            onClick:()=>setView("cart"),
-            style:{background:"var(--red)",color:"white",border:"none",borderRadius:12,padding:"9px 14px",fontWeight:"800",fontSize:"13px",cursor:"pointer",display:"flex",alignItems:"center",gap:7,boxShadow:"0 4px 14px rgba(232,17,26,.4)",fontFamily:'"Nunito",sans-serif',letterSpacing:".01em"}
-          },
-            React.createElement("span",null,"🛒"),
-            React.createElement("span",null,cartCount+" · "+fmt(cartTotal))
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
+            cartCount>0&&React.createElement("button",{
+              onClick:()=>setView("cart"),
+              style:{background:"var(--red)",color:"white",border:"none",borderRadius:12,padding:"9px 14px",fontWeight:"800",fontSize:"13px",cursor:"pointer",display:"flex",alignItems:"center",gap:7,boxShadow:"0 4px 14px rgba(232,17,26,.4)",fontFamily:'"Nunito",sans-serif',letterSpacing:".01em"}
+            },
+              React.createElement("span",null,"🛒"),
+              React.createElement("span",null,cartCount+" · "+fmt(cartTotal))
+            ),
+            onSignOut&&React.createElement("button",{onClick:onSignOut,style:{background:"rgba(255,255,255,.18)",border:"none",color:"white",borderRadius:9,padding:"7px 12px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}},"Salir")
           )
         ),
         React.createElement("div",{style:{padding:"10px 13px 6px"}},
@@ -766,10 +769,12 @@
       return React.createElement(ProfileSetup,{profile:currentProfile,onComplete:setCurrentProfile})
     }
 
-    return React.createElement("div",{style:{minHeight:"100vh",background:"#f4f6fb"}},
-      React.createElement(AppHeader,{subtitle:"Hola, "+currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0]+" 👋 · Precios mayoristas",onSignOut:signOut}),
-      tab==="catalog"&&React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile}),
-      tab==="orders"&&React.createElement(OrderHistory,{userId:currentProfile.id}),
+    return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
+      tab==="catalog"&&React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut}),
+      tab==="orders"&&React.createElement("div",null,
+        React.createElement(AppHeader,{subtitle:"Hola, "+(currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0])+" 👋",onSignOut:signOut}),
+        React.createElement(OrderHistory,{userId:currentProfile.id})
+      ),
       React.createElement("div",{className:"bottom-nav"},
         [{id:"catalog",icon:"📦",label:"Catálogo"},{id:"orders",icon:"📋",label:"Mis pedidos"}].map(({id,icon,label})=>
           React.createElement("button",{key:id,onClick:()=>setTab(id),className:"nav-btn "+(tab===id?"active":"inactive")},
