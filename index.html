@@ -130,6 +130,28 @@
     "PAPELERIA":"Papelería","AROMATIZACION":"Aromatiz.","INSECTICIDAS":"Insecticidas",
     "DESCARTABLES":"Descartables","HIG PERSONAL":"Higiene","HIGIENE PERS":"Higiene",
   }
+  // SVG icons for categories - linear clean style
+  const CAT_SVG = {
+    "ARTICULOS DE LIMPIEZA": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 4c0 0 1-1 3-1s3 1 3 1v4H10V4z"/><path d="M10 8v16c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V8"/><path d="M7 12h14M9 16c0 0 2 2 7 0"/><path d="M22 10c1 0 4 1 4 5s-3 5-4 5"/></svg>`,
+    "BOLSAS RESID": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 10h16l-2 16H10L8 10z"/><path d="M6 10h20M13 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M13 14v8M19 14v8"/></svg>`,
+    "QUIMICOS": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4h8M13 4v6l-5 8c-1 2 0 4 2 4h12c2 0 3-2 2-4l-5-8V4"/><path d="M10 18h12M14 22h4"/></svg>`,
+    "PAPELERIA": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="4" width="14" height="18" rx="2"/><path d="M20 8h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2v-2"/><path d="M10 9h6M10 13h8M10 17h5"/></svg>`,
+    "AROMATIZACION": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 28V18"/><path d="M11 18h10a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H11a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2z"/><path d="M14 12V9a2 2 0 0 1 4 0v3"/><path d="M10 6c0 0 1-2 3-2M16 4c0 0 2 0 3 2M22 6c0 0 0 2-1 3"/></svg>`,
+    "INSECTICIDAS": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 10a6 6 0 0 0-6 6v4a6 6 0 0 0 12 0v-4a6 6 0 0 0-6-6z"/><path d="M13 10V7M19 10V7M10 16H6M26 16h-4M8 22l-3 3M24 22l3 3M16 10V7"/></svg>`,
+    "DESCARTABLES": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="16" cy="14" r="6"/><path d="M16 8V4M10 14H4M22 14h6M16 20v4M12 10L8 7M20 10l4-3M12 18l-4 3M20 18l4 3"/></svg>`,
+    "HIG PERSONAL": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4h10a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 4v2a2 2 0 0 0 4 0V4"/><path d="M13 12h6M13 16h4M13 20h5"/></svg>`,
+    "HIGIENE PERS": `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4h10a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 4v2a2 2 0 0 0 4 0V4"/><path d="M13 12h6M13 16h4"/></svg>`,
+  }
+
+  function CatIcon({cat, size=22, color="#1a3fcc"}) {
+    const svg = CAT_SVG[cat]
+    if(!svg) return React.createElement("span",{style:{fontSize:size*0.9}},"📦")
+    return React.createElement("span",{
+      style:{width:size,height:size,display:"inline-flex",alignItems:"center",justifyContent:"center",color:color,flexShrink:0},
+      dangerouslySetInnerHTML:{__html:svg.replace('viewBox',`width="${size}" height="${size}" viewBox`)}
+    })
+  }
+
   const CAT_EMOJI = {
     "ARTICULOS DE LIMPIEZA":"🧹","BOLSAS RESID":"🗑️","QUIMICOS":"🧴",
     "PAPELERIA":"📄","AROMATIZACION":"🌸","INSECTICIDAS":"🪲",
@@ -229,8 +251,9 @@
           ? React.createElement("div",{style:{width:"100%",height:200,display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,background:"#f8faff"}},CAT_EMOJI[product.category]||"📦")
           : React.createElement("img",{src:STORAGE_URL+"/"+product.sku+".webp",alt:product.name,loading:"lazy",onError:()=>setImgErr(true),style:{width:"100%",height:200,objectFit:"contain",background:"#f8faff",padding:16}}),
         React.createElement("div",{style:{padding:"14px 18px 18px"}},
-          React.createElement("p",{style:{fontSize:"11px",fontWeight:"700",color:"#94a3b8",textTransform:"uppercase",letterSpacing:".08em",marginBottom:3}},
-            (CAT_EMOJI[product.category]||"📦")+" "+(CATS[product.category]||product.category)
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:3}},
+            React.createElement(CatIcon,{cat:product.category,size:16,color:"#94a3b8"}),
+            React.createElement("p",{style:{fontSize:"11px",fontWeight:"800",color:"#94a3b8",textTransform:"uppercase",letterSpacing:".08em"}},(CATS[product.category]||product.category))
           ),
           React.createElement("p",{style:{fontWeight:"700",fontSize:"14px",color:"#1e293b",lineHeight:1.35,marginBottom:10}},product.name),
 
@@ -544,8 +567,14 @@
         ),
         React.createElement("div",{style:{display:"flex",gap:7,padding:"6px 13px 11px",overflowX:"auto"}},
           ["TODOS",...allCats].map(c=>
-            React.createElement("button",{key:c,onClick:()=>setCat(c),className:"cat-pill "+(cat===c?"active":"inactive")},
-              c==="TODOS"?"Todos":(CAT_EMOJI[c]||"")+" "+(CATS[c]||c)
+            React.createElement("button",{key:c,onClick:()=>setCat(c),className:"cat-pill "+(cat===c?"active":"inactive"),
+              style:{display:"flex",alignItems:"center",gap:6}},
+              c==="TODOS"
+                ? React.createElement("span",null,"Todos")
+                : React.createElement(React.Fragment,null,
+                    React.createElement(CatIcon,{cat:c,size:18,color:cat===c?"white":"#1a3fcc"}),
+                    React.createElement("span",null,CATS[c]||c)
+                  )
             )
           )
         )
@@ -568,7 +597,10 @@
                   inCart&&React.createElement("div",{className:"cart-badge",style:{position:"absolute",top:10,right:10}},inCart.qty)
                 ),
                 React.createElement("div",{style:{padding:"10px 12px 14px",flex:1,display:"flex",flexDirection:"column"}},
-                  React.createElement("p",{style:{fontSize:"10px",color:"var(--text3)",fontWeight:"800",textTransform:"uppercase",letterSpacing:".06em",marginBottom:4}},CATS[p.category]||p.category),
+                  React.createElement("div",{style:{display:"flex",alignItems:"center",gap:4,marginBottom:4}},
+                    React.createElement(CatIcon,{cat:p.category,size:14,color:"#94a3b8"}),
+                    React.createElement("p",{style:{fontSize:"10px",color:"var(--text3)",fontWeight:"800",textTransform:"uppercase",letterSpacing:".06em"}},CATS[p.category]||p.category)
+                  ),
                   React.createElement("p",{style:{fontWeight:"700",fontSize:"12px",color:"var(--text)",lineHeight:1.35,flex:1,marginBottom:8}},p.name),
                   React.createElement("p",{className:"price-tag",style:{fontSize:"19px",marginBottom:10}},fmt(p.price)),
                   React.createElement("button",{
@@ -922,7 +954,7 @@
           allCats.map(cat=>
             React.createElement("div",{key:cat},
               React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:7,paddingLeft:3}},
-                React.createElement("span",{style:{fontSize:15}},CAT_EMOJI[cat]||"📦"),
+                React.createElement(CatIcon,{cat:cat,size:18,color:"#1a3fcc"}),
                 React.createElement("p",{style:{fontSize:"10px",fontWeight:"800",color:"#94a3b8",textTransform:"uppercase",letterSpacing:".12em"}},CATS[cat]||cat)
               ),
               React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:5}},
