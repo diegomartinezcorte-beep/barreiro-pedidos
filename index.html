@@ -367,7 +367,7 @@
   }
 
   // ── CATÁLOGO ──────────────────────────────────────────────
-  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile,onSignOut,bottomNav}) {
+  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile,onSignOut,onGoOrders}) {
     const [products,setProducts]   = useState([])
     const [cart,setCart]           = useState({})
     const [search,setSearch]       = useState("")
@@ -640,7 +640,17 @@
             })
       ),
       toast&&React.createElement(Toast,{msg:toast,onClose:()=>setToast("")}),
-      bottomNav||null
+      // Bottom nav - only in catalog view
+      onGoOrders&&React.createElement("div",{className:"bottom-nav"},
+        React.createElement("button",{onClick:()=>{},className:"nav-btn active"},
+          React.createElement("span",{style:{fontSize:20}},"📦"),
+          React.createElement("span",null,"Catálogo")
+        ),
+        React.createElement("button",{onClick:onGoOrders,className:"nav-btn inactive"},
+          React.createElement("span",{style:{fontSize:20}},"📋"),
+          React.createElement("span",null,"Mis pedidos")
+        )
+      )
     )
   }
 
@@ -835,16 +845,20 @@
 
   // ── CLIENTE ───────────────────────────────────────────────
   function ClientApp({profile}) {
-    const [tab,setTab]=useState("catalog")
     const [currentProfile,setCurrentProfile]=useState(profile)
     const signOut=()=>sb.auth.signOut().then(()=>window.location.reload())
 
-    // Show profile setup if not complete
     if(!currentProfile.perfil_completo) {
       return React.createElement(ProfileSetup,{profile:currentProfile,onComplete:setCurrentProfile})
     }
 
-    const bottomNav = React.createElement("div",{className:"bottom-nav"},
+    return React.createElement(ClientShell,{profile:currentProfile,signOut:signOut})
+  }
+
+  function ClientShell({profile,signOut}) {
+    const [tab,setTab]=useState("catalog")
+
+    const navBar = v => React.createElement("div",{className:"bottom-nav"},
       [{id:"catalog",icon:"📦",label:"Catálogo"},{id:"orders",icon:"📋",label:"Mis pedidos"}].map(({id,icon,label})=>
         React.createElement("button",{key:id,onClick:()=>setTab(id),className:"nav-btn "+(tab===id?"active":"inactive")},
           React.createElement("span",{style:{fontSize:20}},icon),
@@ -853,14 +867,18 @@
       )
     )
 
-    if(tab==="catalog") return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
-      React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut,bottomNav:bottomNav}),
-    )
+    if(tab==="catalog") return React.createElement(ProductCatalog,{
+      clientId:profile.id,
+      clientName:profile.nombre_fantasia||profile.name,
+      profile:profile,
+      onSignOut:signOut,
+      onGoOrders:()=>setTab("orders")
+    })
 
     return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
-      React.createElement(AppHeader,{subtitle:"Hola, "+(currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0])+" 👋",onSignOut:signOut}),
-      React.createElement(OrderHistory,{userId:currentProfile.id}),
-      bottomNav
+      React.createElement(AppHeader,{subtitle:"Hola, "+(profile.nombre_fantasia||profile.name.split(" ")[0])+" 👋",onSignOut:signOut}),
+      React.createElement(OrderHistory,{userId:profile.id}),
+      navBar()
     )
   }
 
