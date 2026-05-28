@@ -565,17 +565,41 @@
             React.createElement("input",{type:"search",value:search,onChange:e=>setSearch(e.target.value),placeholder:"Buscar producto o código..."})
           )
         ),
-        React.createElement("div",{style:{display:"flex",gap:7,padding:"6px 13px 11px",overflowX:"auto"}},
-          ["TODOS",...allCats].map(c=>
-            React.createElement("button",{key:c,onClick:()=>setCat(c),className:"cat-pill "+(cat===c?"active":"inactive"),
-              style:{display:"flex",alignItems:"center",gap:6}},
-              c==="TODOS"
-                ? React.createElement("span",null,"Todos")
-                : React.createElement(React.Fragment,null,
-                    React.createElement(CatIcon,{cat:c,size:18,color:cat===c?"white":"#1a3fcc"}),
-                    React.createElement("span",null,CATS[c]||c)
-                  )
-            )
+        React.createElement("div",{style:{padding:"10px 12px 12px"}},
+          // "Todos" pill on top
+          React.createElement("button",{
+            onClick:()=>setCat("TODOS"),
+            style:{
+              width:"100%",padding:"8px",borderRadius:12,marginBottom:8,fontSize:"13px",fontWeight:"800",
+              border:"none",cursor:"pointer",fontFamily:'"Nunito",sans-serif',letterSpacing:".02em",
+              background:cat==="TODOS"?"var(--blue)":"#eef1fa",
+              color:cat==="TODOS"?"white":"var(--text2)",
+              boxShadow:cat==="TODOS"?"0 4px 12px rgba(26,63,204,.3)":"none"
+            }
+          },"Todos los productos"),
+          // Category grid 3 columns
+          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}},
+            allCats.map(c=>{
+              const isActive = cat===c
+              return React.createElement("button",{
+                key:c,
+                onClick:()=>setCat(c),
+                style:{
+                  padding:"10px 6px",borderRadius:14,fontSize:"11px",fontWeight:"800",
+                  border:isActive?"2px solid var(--blue)":"2px solid #e8ecf8",
+                  cursor:"pointer",fontFamily:'"Nunito",sans-serif',letterSpacing:".01em",
+                  background:isActive?"var(--blue)":"white",
+                  color:isActive?"white":"var(--text2)",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:6,
+                  boxShadow:isActive?"0 4px 12px rgba(26,63,204,.3)":"0 1px 4px rgba(0,0,0,.05)",
+                  transition:"all .15s",
+                  textAlign:"center",lineHeight:1.2
+                }
+              },
+                React.createElement(CatIcon,{cat:c,size:32,color:isActive?"white":"#1a3fcc"}),
+                React.createElement("span",null,CATS[c]||c)
+              )
+            })
           )
         )
       ),
