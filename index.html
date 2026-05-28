@@ -525,7 +525,8 @@
         product:modal,cartQty:cart[modal.id]?.qty||0,
         onClose:()=>setModal(null),onAdd:addToCart,onUpdate:updateQty
       }),
-      React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:"white",boxShadow:"0 1px 0 #e8ecf8"}},
+      // Sticky header - only logo, cart, search
+      React.createElement("div",{style:{position:"sticky",top:0,zIndex:20,background:"white",boxShadow:"0 2px 8px rgba(0,0,0,.08)"}},
         React.createElement("div",{className:"bg-brand",style:{padding:"12px 14px 14px"}},
           // Top row: logo + buttons
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}},
@@ -533,12 +534,12 @@
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8}},
               cartCount>0&&React.createElement("button",{
                 onClick:()=>setView("cart"),
-                style:{background:"var(--red)",color:"white",border:"none",borderRadius:12,padding:"8px 13px",fontWeight:"800",fontSize:"13px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,boxShadow:"0 4px 14px rgba(232,17,26,.4)",fontFamily:'"Nunito",sans-serif'}
+                style:{background:"var(--red)",color:"white",border:"none",borderRadius:12,padding:"8px 13px",fontWeight:"800",fontSize:"13px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,boxShadow:"0 4px 14px rgba(232,17,26,.4)",fontFamily:'"Nunito",sans-serif',zIndex:10,position:"relative"}
               },
                 React.createElement("span",null,"🛒"),
                 React.createElement("span",null,cartCount+" · "+fmt(cartTotal))
               ),
-              onSignOut&&React.createElement("button",{onClick:onSignOut,style:{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.25)",color:"white",borderRadius:9,padding:"7px 11px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}},"Salir")
+              onSignOut&&React.createElement("button",{onClick:onSignOut,style:{background:"rgba(255,255,255,.15)",border:"1px solid rgba(255,255,255,.25)",color:"white",borderRadius:9,padding:"7px 11px",fontSize:"12px",fontWeight:"700",cursor:"pointer",zIndex:10,position:"relative"}},"Salir")
             )
           ),
           // Slogan
@@ -559,48 +560,45 @@
             )
           )
         ),
-        React.createElement("div",{style:{padding:"10px 13px 6px"}},
+        React.createElement("div",{style:{padding:"10px 13px 8px"}},
           React.createElement("div",{className:"search-wrap"},
             React.createElement("span",{className:"icon"},"🔍"),
             React.createElement("input",{type:"search",value:search,onChange:e=>setSearch(e.target.value),placeholder:"Buscar producto o código..."})
           )
-        ),
-        React.createElement("div",{style:{padding:"10px 12px 12px"}},
-          // "Todos" pill on top
-          React.createElement("button",{
-            onClick:()=>setCat("TODOS"),
-            style:{
-              width:"100%",padding:"8px",borderRadius:12,marginBottom:8,fontSize:"13px",fontWeight:"800",
-              border:"none",cursor:"pointer",fontFamily:'"Nunito",sans-serif',letterSpacing:".02em",
-              background:cat==="TODOS"?"var(--blue)":"#eef1fa",
-              color:cat==="TODOS"?"white":"var(--text2)",
-              boxShadow:cat==="TODOS"?"0 4px 12px rgba(26,63,204,.3)":"none"
-            }
-          },"Todos los productos"),
-          // Category grid 3 columns
-          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}},
-            allCats.map(c=>{
-              const isActive = cat===c
-              return React.createElement("button",{
-                key:c,
-                onClick:()=>setCat(c),
-                style:{
-                  padding:"7px 4px",borderRadius:11,fontSize:"10px",fontWeight:"800",
-                  border:isActive?"2px solid var(--blue)":"1.5px solid #e8ecf8",
-                  cursor:"pointer",fontFamily:'"Nunito",sans-serif',letterSpacing:".01em",
-                  background:isActive?"var(--blue)":"white",
-                  color:isActive?"white":"var(--text2)",
-                  display:"flex",flexDirection:"column",alignItems:"center",gap:4,
-                  boxShadow:isActive?"0 3px 10px rgba(26,63,204,.25)":"0 1px 3px rgba(0,0,0,.04)",
-                  transition:"all .15s",
-                  textAlign:"center",lineHeight:1.2
-                }
-              },
-                React.createElement(CatIcon,{cat:c,size:22,color:isActive?"white":"#1a3fcc"}),
-                React.createElement("span",null,CATS[c]||c)
-              )
-            })
-          )
+        )
+      ),
+      // Category grid - scrolls with content (not sticky)
+      React.createElement("div",{style:{padding:"10px 12px 4px",background:"white",borderBottom:"1px solid #e8ecf8"}},
+        React.createElement("button",{
+          onClick:()=>setCat("TODOS"),
+          style:{
+            width:"100%",padding:"7px",borderRadius:11,marginBottom:7,fontSize:"12px",fontWeight:"800",
+            border:"none",cursor:"pointer",fontFamily:'"Nunito",sans-serif',
+            background:cat==="TODOS"?"var(--blue)":"#eef1fa",
+            color:cat==="TODOS"?"white":"var(--text2)",
+            boxShadow:cat==="TODOS"?"0 4px 12px rgba(26,63,204,.3)":"none"
+          }
+        },"Todos los productos"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}},
+          allCats.map(c=>{
+            const isActive = cat===c
+            return React.createElement("button",{
+              key:c, onClick:()=>setCat(c),
+              style:{
+                padding:"7px 4px",borderRadius:11,fontSize:"10px",fontWeight:"800",
+                border:isActive?"2px solid var(--blue)":"1.5px solid #e8ecf8",
+                cursor:"pointer",fontFamily:'"Nunito",sans-serif',
+                background:isActive?"var(--blue)":"white",
+                color:isActive?"white":"var(--text2)",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+                boxShadow:isActive?"0 3px 10px rgba(26,63,204,.25)":"0 1px 3px rgba(0,0,0,.04)",
+                transition:"all .15s",textAlign:"center",lineHeight:1.2
+              }
+            },
+              React.createElement(CatIcon,{cat:c,size:22,color:isActive?"white":"#1a3fcc"}),
+              React.createElement("span",null,CATS[c]||c)
+            )
+          })
         )
       ),
       React.createElement("div",{style:{padding:"12px 12px 100px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},
@@ -845,20 +843,24 @@
       return React.createElement(ProfileSetup,{profile:currentProfile,onComplete:setCurrentProfile})
     }
 
-    return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
-      tab==="catalog"&&React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut}),
-      tab==="orders"&&React.createElement("div",null,
-        React.createElement(AppHeader,{subtitle:"Hola, "+(currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0])+" 👋",onSignOut:signOut}),
-        React.createElement(OrderHistory,{userId:currentProfile.id})
-      ),
-      React.createElement("div",{className:"bottom-nav"},
-        [{id:"catalog",icon:"📦",label:"Catálogo"},{id:"orders",icon:"📋",label:"Mis pedidos"}].map(({id,icon,label})=>
-          React.createElement("button",{key:id,onClick:()=>setTab(id),className:"nav-btn "+(tab===id?"active":"inactive")},
-            React.createElement("span",{style:{fontSize:22}},icon),
-            React.createElement("span",null,label)
-          )
+    const bottomNav = React.createElement("div",{className:"bottom-nav"},
+      [{id:"catalog",icon:"📦",label:"Catálogo"},{id:"orders",icon:"📋",label:"Mis pedidos"}].map(({id,icon,label})=>
+        React.createElement("button",{key:id,onClick:()=>setTab(id),className:"nav-btn "+(tab===id?"active":"inactive")},
+          React.createElement("span",{style:{fontSize:20}},icon),
+          React.createElement("span",null,label)
         )
       )
+    )
+
+    if(tab==="catalog") return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
+      React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut}),
+      bottomNav
+    )
+
+    return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
+      React.createElement(AppHeader,{subtitle:"Hola, "+(currentProfile.nombre_fantasia||currentProfile.name.split(" ")[0])+" 👋",onSignOut:signOut}),
+      React.createElement(OrderHistory,{userId:currentProfile.id}),
+      bottomNav
     )
   }
 
