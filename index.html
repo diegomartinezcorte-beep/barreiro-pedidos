@@ -578,25 +578,25 @@
             }
           },"Todos los productos"),
           // Category grid 3 columns
-          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}},
+          React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}},
             allCats.map(c=>{
               const isActive = cat===c
               return React.createElement("button",{
                 key:c,
                 onClick:()=>setCat(c),
                 style:{
-                  padding:"10px 6px",borderRadius:14,fontSize:"11px",fontWeight:"800",
-                  border:isActive?"2px solid var(--blue)":"2px solid #e8ecf8",
+                  padding:"7px 4px",borderRadius:11,fontSize:"10px",fontWeight:"800",
+                  border:isActive?"2px solid var(--blue)":"1.5px solid #e8ecf8",
                   cursor:"pointer",fontFamily:'"Nunito",sans-serif',letterSpacing:".01em",
                   background:isActive?"var(--blue)":"white",
                   color:isActive?"white":"var(--text2)",
-                  display:"flex",flexDirection:"column",alignItems:"center",gap:6,
-                  boxShadow:isActive?"0 4px 12px rgba(26,63,204,.3)":"0 1px 4px rgba(0,0,0,.05)",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+                  boxShadow:isActive?"0 3px 10px rgba(26,63,204,.25)":"0 1px 3px rgba(0,0,0,.04)",
                   transition:"all .15s",
                   textAlign:"center",lineHeight:1.2
                 }
               },
-                React.createElement(CatIcon,{cat:c,size:32,color:isActive?"white":"#1a3fcc"}),
+                React.createElement(CatIcon,{cat:c,size:22,color:isActive?"white":"#1a3fcc"}),
                 React.createElement("span",null,CATS[c]||c)
               )
             })
