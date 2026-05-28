@@ -367,7 +367,7 @@
   }
 
   // ── CATÁLOGO ──────────────────────────────────────────────
-  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile,onSignOut}) {
+  function ProductCatalog({clientId,vendorId,clientName,vendorName,onSuccess,profile,onSignOut,bottomNav}) {
     const [products,setProducts]   = useState([])
     const [cart,setCart]           = useState({})
     const [search,setSearch]       = useState("")
@@ -639,7 +639,8 @@
               )
             })
       ),
-      toast&&React.createElement(Toast,{msg:toast,onClose:()=>setToast("")})
+      toast&&React.createElement(Toast,{msg:toast,onClose:()=>setToast("")}),
+      bottomNav||null
     )
   }
 
@@ -853,8 +854,7 @@
     )
 
     if(tab==="catalog") return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
-      React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut}),
-      bottomNav
+      React.createElement(ProductCatalog,{clientId:currentProfile.id,clientName:currentProfile.nombre_fantasia||currentProfile.name,profile:currentProfile,onSignOut:signOut,bottomNav:bottomNav}),
     )
 
     return React.createElement("div",{style:{minHeight:"100vh",background:"var(--gray)"}},
